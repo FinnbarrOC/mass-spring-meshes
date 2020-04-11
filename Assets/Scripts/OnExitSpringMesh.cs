@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using static Unity.Mathematics.math;
-using Unity.Mathematics;
 
 [RequireComponent(typeof(MeshFilter))]
 [RequireComponent(typeof(Collider))]
@@ -74,14 +71,14 @@ public class OnExitSpringMesh : MonoBehaviour
         foreach (Rigidbody curRigidbody in _enteredRigidbodies)
         {
             Vector3 closestMeshPoint = _collider.ClosestPoint(curRigidbody.position);
-            Vector3 directionToRigidBody = closestMeshPoint - curRigidbody.position;
-            float displacement = directionToRigidBody.magnitude;
-            Vector3 forceTowardsRigidBody = springConstant * displacement * directionToRigidBody;
+            Vector3 forceDirection = closestMeshPoint - curRigidbody.position;
+            float displacement = forceDirection.magnitude;
+            Vector3 forceTowardsRigidBody = springConstant * displacement * forceDirection;
             
             curRigidbody.AddForce(forceTowardsRigidBody);
-
-            Vector3 offsetHitPoint = curRigidbody.position + (forceOffset * directionToRigidBody.normalized);
-            AddDeformingForce(offsetHitPoint, forceTowardsRigidBody.magnitude);
+            
+            Vector3 offsetHitPoint = curRigidbody.position - (forceOffset * curRigidbody.velocity.normalized);
+            AddDeformingForce(offsetHitPoint, curRigidbody.velocity.magnitude);
         }
     }
 
