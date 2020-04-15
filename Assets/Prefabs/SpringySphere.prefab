@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 2930554222412965798}
   - component: {fileID: 2930554222412965797}
   - component: {fileID: 2930554222412965802}
-  - component: {fileID: 2930554222412965796}
+  - component: {fileID: 2926960892246665670}
   m_Layer: 0
   m_Name: SpringySphere
   m_TagString: Untagged
@@ -93,7 +93,7 @@ SphereCollider:
   m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 0.4
+  m_Radius: 0.45
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!54 &2930554222412965802
 Rigidbody:
@@ -111,7 +111,7 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 126
   m_CollisionDetection: 0
---- !u!114 &2930554222412965796
+--- !u!114 &2926960892246665670
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -120,10 +120,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 2930554222412965795}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 51a0118e62605e14cb6d00ce5cc3b72b, type: 3}
+  m_Script: {fileID: 11500000, guid: 2c9294514eaf2054b8baff033b5d9111, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   springConstant: 15
   springDamping: 2
   displacementScale: 4
   forceOffset: 5
+  draftPer100: 0.3
+  player: {fileID: 0}
