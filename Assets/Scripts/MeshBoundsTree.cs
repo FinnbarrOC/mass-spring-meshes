@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class MeshBoundsTree
 {
+    private readonly Transform _transform;
     private readonly Vector3[] _vertices;
     private readonly int[] _triangles;
     public readonly int NumTriangles;
@@ -12,26 +13,28 @@ public class MeshBoundsTree
 
     private readonly MeshBoundsTreeNode _node;
 
-    public MeshBoundsTree(Mesh mesh)
+    public MeshBoundsTree(Mesh mesh, Transform transform)
     {
+        _transform = transform;
         _vertices = mesh.vertices;
         _triangles = mesh.triangles;
         NumTriangles = _triangles.Length / 3;
-        InitializeTriangleBounds();
+        Bounds totalBounds = InitializeTriangleBounds();
         
         BitArray allTriangleIndices = new BitArray(NumTriangles, true);
-        _node = new MeshBoundsTreeNode(mesh.bounds, allTriangleIndices, NumTriangles, this);
+        _node = new MeshBoundsTreeNode(totalBounds, allTriangleIndices, NumTriangles, this);
     }
     
-    private void InitializeTriangleBounds()
+    private Bounds InitializeTriangleBounds()
     {
+        Bounds totalBounds = new Bounds();
         TriangleBounds = new Bounds[NumTriangles];
         
         for (int tri = 0; tri < NumTriangles; tri++)
         {
-            Vector3 vertex0 = _vertices[_triangles[3*tri]];
-            Vector3 vertex1 = _vertices[_triangles[3*tri+1]];
-            Vector3 vertex2 = _vertices[_triangles[3*tri+2]];
+            Vector3 vertex0 = _transform.TransformPoint(_vertices[_triangles[3*tri]]);
+            Vector3 vertex1 = _transform.TransformPoint(_vertices[_triangles[3*tri+1]]);
+            Vector3 vertex2 = _transform.TransformPoint(_vertices[_triangles[3*tri+2]]);
 
             Vector3 minCorner = new Vector3
             {
@@ -48,12 +51,15 @@ public class MeshBoundsTree
             };
 
             TriangleBounds[tri].SetMinMax(minCorner, maxCorner);
+            totalBounds.Encapsulate(TriangleBounds[tri]);
         }
+
+        return totalBounds;
     }
 
-    public int[] ClosestTriangle(Vector3 queryPoint)
+    public int[] RaycastTriangle(Ray ray)
     {
-        int tri = _node.ClosestTriangleIndex(queryPoint);
+        int tri = _node.RaycastTriangleIndex(ray);
 
         if (tri == -1)
         {
@@ -90,7 +96,6 @@ internal class MeshBoundsTreeNode
 
         int longestAxis = BoundsLongestAxis(_bounds);
         
-
         BitArray trianglesLeft, trianglesRight;
         int numTrianglesLeft, numTrianglesRight;
         (trianglesLeft, trianglesRight, numTrianglesLeft, numTrianglesRight) = PartitionTriangles(longestAxis);
@@ -197,18 +202,21 @@ internal class MeshBoundsTreeNode
         return (boundsLeft, boundsRight);
     }
 
-    public int ClosestTriangleIndex(Vector3 queryPoint)
+    public int RaycastTriangleIndex(Ray ray)
     {
-        // Base Cases
-        if (!_bounds.Contains(queryPoint))
+        if (!_bounds.IntersectRay(ray))
         {
             return -1;
         }
         
-        // if (_childLeft is null && _childRight is null)
-        // {
-        //     return Array.IndexOf(_triangles, 1);
-        // }
+        // Base Case
+        if (_childLeft is null && _childRight is null)
+        {
+            // _bounds contains 1 triangle, so return its index
+            bool[] trianglesArray = new bool[_root.NumTriangles];
+            _triangles.CopyTo(trianglesArray, 0);
+            return Array.IndexOf(trianglesArray, true);
+        }
         
         // Recursive Case
         int leftResult = -1;
@@ -216,11 +224,11 @@ internal class MeshBoundsTreeNode
 
         if (_childLeft != null)
         {
-            leftResult = _childLeft.ClosestTriangleIndex(queryPoint);
+            leftResult = _childLeft.RaycastTriangleIndex(ray);
         }
         if (_childRight != null)
         {
-            rightResult = _childRight.ClosestTriangleIndex(queryPoint);
+            rightResult = _childRight.RaycastTriangleIndex(ray);
         }
 
         return Math.Max(leftResult, rightResult);
