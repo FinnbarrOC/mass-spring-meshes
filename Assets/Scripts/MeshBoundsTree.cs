@@ -209,6 +209,8 @@ internal class MeshBoundsTreeNode
             return -1;
         }
         
+        BoundsDrawer.DrawBounds(_bounds, Color.green, 60);
+        
         // Base Case
         if (_childLeft is null && _childRight is null)
         {
