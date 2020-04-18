@@ -1,9 +1,31 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
-public class BoundsDrawer : MonoBehaviour
+
+public static class Utils
 {
+    public static bool RayTriangleIntersect(Ray ray, Vector3 vertex0, Vector3 vertex1, Vector3 vertex2)
+    {
+        Vector3 triangleNormal = Vector3.Cross((vertex1 - vertex0), (vertex2 - vertex0)).normalized;
+
+        float q = Vector3.Dot(triangleNormal, vertex0);
+        float numerator = q - Vector3.Dot(triangleNormal, ray.origin);
+        float denominator = Vector3.Dot(triangleNormal, ray.direction);
+
+        // Check if ray.direction is parallel to plane
+        if (Mathf.Approximately(denominator, 0)) {
+            return false;
+        }
+        
+        Vector3 intersectionPoint = ray.origin + (numerator / denominator) * ray.direction;
+        
+        // Check that ray lands inside all 3 triangle edges
+        bool inSide0 = Vector3.Dot(Vector3.Cross((vertex1 - vertex0), intersectionPoint - vertex0), triangleNormal) >= 0;
+        bool inSide1 = Vector3.Dot(Vector3.Cross((vertex2 - vertex1), intersectionPoint - vertex1), triangleNormal) >= 0;
+        bool inSide2 = Vector3.Dot(Vector3.Cross((vertex0 - vertex2), intersectionPoint - vertex2), triangleNormal) >= 0;
+
+        return (inSide0 && inSide1 && inSide2);
+    }
+    
     public static void DrawBounds(Bounds bounds, Color color, float duration)
     {
         Vector3 center = bounds.center;

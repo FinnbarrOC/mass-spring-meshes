@@ -5,9 +5,9 @@ using UnityEngine;
 
 public class MeshBoundsTree
 {
-    private readonly Transform _transform;
-    private readonly Vector3[] _vertices;
-    private readonly int[] _triangles;
+    public readonly Transform Transform;
+    public readonly Vector3[] Vertices;
+    public readonly int[] Triangles;
     public readonly int NumTriangles;
     public Bounds[] TriangleBounds;
 
@@ -15,10 +15,10 @@ public class MeshBoundsTree
 
     public MeshBoundsTree(Mesh mesh, Transform transform)
     {
-        _transform = transform;
-        _vertices = mesh.vertices;
-        _triangles = mesh.triangles;
-        NumTriangles = _triangles.Length / 3;
+        Transform = transform;
+        Vertices = mesh.vertices;
+        Triangles = mesh.triangles;
+        NumTriangles = Triangles.Length / 3;
         Bounds totalBounds = InitializeTriangleBounds();
         
         BitArray allTriangleIndices = new BitArray(NumTriangles, true);
@@ -32,9 +32,9 @@ public class MeshBoundsTree
         
         for (int tri = 0; tri < NumTriangles; tri++)
         {
-            Vector3 vertex0 = _transform.TransformPoint(_vertices[_triangles[3*tri]]);
-            Vector3 vertex1 = _transform.TransformPoint(_vertices[_triangles[3*tri+1]]);
-            Vector3 vertex2 = _transform.TransformPoint(_vertices[_triangles[3*tri+2]]);
+            Vector3 vertex0 = Transform.TransformPoint(Vertices[Triangles[3*tri]]);
+            Vector3 vertex1 = Transform.TransformPoint(Vertices[Triangles[3*tri+1]]);
+            Vector3 vertex2 = Transform.TransformPoint(Vertices[Triangles[3*tri+2]]);
 
             Vector3 minCorner = new Vector3
             {
@@ -68,9 +68,9 @@ public class MeshBoundsTree
 
         return new[]
         {
-            _triangles[3 * tri], 
-            _triangles[3 * tri + 1], 
-            _triangles[3 * tri + 2]
+            Triangles[3 * tri], 
+            Triangles[3 * tri + 1], 
+            Triangles[3 * tri + 2]
         };
     }
 }
@@ -191,11 +191,25 @@ internal class MeshBoundsTreeNode
         {
             if (trianglesLeft[tri])
             {
-                boundsLeft.Encapsulate(_root.TriangleBounds[tri]);
+                if (boundsLeft.min == boundsLeft.max)
+                {
+                    boundsLeft = _root.TriangleBounds[tri];
+                }
+                else
+                {
+                    boundsLeft.Encapsulate(_root.TriangleBounds[tri]);
+                }
             }
             else
             {
-                boundsRight.Encapsulate(_root.TriangleBounds[tri]);
+                if (boundsRight.min == boundsRight.max)
+                {
+                    boundsRight = _root.TriangleBounds[tri];
+                }
+                else
+                {
+                    boundsRight.Encapsulate(_root.TriangleBounds[tri]);
+                }
             }
         }
 
@@ -209,15 +223,26 @@ internal class MeshBoundsTreeNode
             return -1;
         }
         
-        BoundsDrawer.DrawBounds(_bounds, Color.green, 60);
+        Utils.DrawBounds(_bounds, Color.green, 60);
         
         // Base Case
         if (_childLeft is null && _childRight is null)
         {
-            // _bounds contains 1 triangle, so return its index
+            // _bounds contains 1 triangle, so check intersection and return index
             bool[] trianglesArray = new bool[_root.NumTriangles];
             _triangles.CopyTo(trianglesArray, 0);
-            return Array.IndexOf(trianglesArray, true);
+            int tri = Array.IndexOf(trianglesArray, true);
+            
+            Vector3 vertex0 = _root.Transform.TransformPoint(_root.Vertices[_root.Triangles[3*tri]]);
+            Vector3 vertex1 = _root.Transform.TransformPoint(_root.Vertices[_root.Triangles[3*tri+1]]);
+            Vector3 vertex2 = _root.Transform.TransformPoint(_root.Vertices[_root.Triangles[3*tri+2]]);
+
+            if (Utils.RayTriangleIntersect(ray, vertex0, vertex1, vertex2))
+            {
+                return tri;
+            }
+
+            return -1;
         }
         
         // Recursive Case
