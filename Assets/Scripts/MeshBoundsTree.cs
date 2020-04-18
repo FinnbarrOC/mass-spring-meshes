@@ -94,6 +94,11 @@ internal class MeshBoundsTreeNode
         _numTriangles = numTriangles;
         _root = root;
 
+        if (_numTriangles == 1)
+        {
+            return;
+        }
+
         int longestAxis = BoundsLongestAxis(_bounds);
         
         BitArray trianglesLeft, trianglesRight;
@@ -101,13 +106,13 @@ internal class MeshBoundsTreeNode
         (trianglesLeft, trianglesRight, numTrianglesLeft, numTrianglesRight) = PartitionTriangles(longestAxis);
         
         Bounds boundsLeft, boundsRight;
-        (boundsLeft, boundsRight) = GenerateBounds(trianglesLeft);
+        (boundsLeft, boundsRight) = GenerateBounds(trianglesLeft, trianglesRight);
 
-        if (numTrianglesLeft > 1)
+        if (numTrianglesLeft > 0)
         {
             _childLeft = new MeshBoundsTreeNode(boundsLeft, trianglesLeft, numTrianglesLeft, _root);
         }
-        if (numTrianglesRight > 1)
+        if (numTrianglesRight > 0)
         {
             _childRight = new MeshBoundsTreeNode(boundsRight, trianglesRight, numTrianglesRight, _root);
         }
@@ -182,7 +187,7 @@ internal class MeshBoundsTreeNode
         return (trianglesLeft, trianglesRight, numTrianglesLeft, numTrianglesRight);
     }
 
-    private (Bounds, Bounds) GenerateBounds(BitArray trianglesLeft)
+    private (Bounds, Bounds) GenerateBounds(BitArray trianglesLeft, BitArray trianglesRight)
     {
         Bounds boundsLeft = new Bounds();
         Bounds boundsRight = new Bounds();
@@ -200,7 +205,7 @@ internal class MeshBoundsTreeNode
                     boundsLeft.Encapsulate(_root.TriangleBounds[tri]);
                 }
             }
-            else
+            else if (trianglesRight[tri])
             {
                 if (boundsRight.min == boundsRight.max)
                 {
