@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using UnityEngine;
+using Priority_Queue;
 
 
 public class MeshBoundsTree
@@ -223,46 +224,64 @@ internal class MeshBoundsTreeNode
 
     public int RaycastTriangleIndex(Ray ray)
     {
-        if (!_bounds.IntersectRay(ray))
+        SimplePriorityQueue<MeshBoundsTreeNode> distanceQueue = new SimplePriorityQueue<MeshBoundsTreeNode>();
+
+        if (!_bounds.IntersectRay(ray, out float curDistance))
         {
             return -1;
         }
         
-        Utils.DrawBounds(_bounds, Color.green, 60);
-        
-        // Base Case
-        if (_childLeft is null && _childRight is null)
+        distanceQueue.Enqueue(this, curDistance);
+
+        float minDistance = Mathf.Infinity;
+        MeshBoundsTreeNode closestNode = this;
+
+        while (distanceQueue.Count != 0 && distanceQueue.Count < 100)
         {
-            // _bounds contains 1 triangle, so check intersection and return index
-            bool[] trianglesArray = new bool[_root.NumTriangles];
-            _triangles.CopyTo(trianglesArray, 0);
-            int tri = Array.IndexOf(trianglesArray, true);
+            MeshBoundsTreeNode curNode = distanceQueue.First;
+            curDistance = distanceQueue.GetPriority(curNode);
+            distanceQueue.Dequeue();
+
+            if (minDistance <= curDistance) continue;
             
-            Vector3 vertex0 = _root.Transform.TransformPoint(_root.Vertices[_root.Triangles[3*tri]]);
-            Vector3 vertex1 = _root.Transform.TransformPoint(_root.Vertices[_root.Triangles[3*tri+1]]);
-            Vector3 vertex2 = _root.Transform.TransformPoint(_root.Vertices[_root.Triangles[3*tri+2]]);
-
-            if (Utils.RayTriangleIntersect(ray, vertex0, vertex1, vertex2))
+            // Leaf case
+            if (_childLeft is null && _childRight is null)
             {
-                return tri;
+                // _bounds contains 1 triangle, so check intersection and return index
+                bool[] trianglesArray = new bool[_root.NumTriangles];
+                _triangles.CopyTo(trianglesArray, 0);
+                int tri = Array.IndexOf(trianglesArray, true);
+            
+                Vector3 vertex0 = _root.Transform.TransformPoint(_root.Vertices[_root.Triangles[3*tri]]);
+                Vector3 vertex1 = _root.Transform.TransformPoint(_root.Vertices[_root.Triangles[3*tri+1]]);
+                Vector3 vertex2 = _root.Transform.TransformPoint(_root.Vertices[_root.Triangles[3*tri+2]]);
+
+                if (Utils.RayTriangleIntersect(ray, vertex0, vertex1, vertex2, out curDistance) && curDistance < minDistance)
+                {
+                    minDistance = curDistance;
+                    closestNode = curNode;
+                }
             }
-
-            return -1;
+                
+            // Internal node case
+            else
+            {
+                // TODO bugged here; this function could be moved to root class as well
+                if (_childLeft != null && _childLeft._bounds.IntersectRay(ray, out float distanceLeft))
+                {
+                    Utils.DrawBounds(_childLeft._bounds, Color.green, 30);
+                    distanceQueue.Enqueue(_childLeft, distanceLeft);
+                }
+                if (_childRight != null && _childRight._bounds.IntersectRay(ray, out float distanceRight))
+                {
+                    Utils.DrawBounds(_childRight._bounds, Color.green, 30);
+                    distanceQueue.Enqueue(_childRight, distanceRight);
+                }
+            }
         }
-        
-        // Recursive Case
-        int leftResult = -1;
-        int rightResult = -1;
 
-        if (_childLeft != null)
-        {
-            leftResult = _childLeft.RaycastTriangleIndex(ray);
-        }
-        if (_childRight != null)
-        {
-            rightResult = _childRight.RaycastTriangleIndex(ray);
-        }
-
-        return Math.Max(leftResult, rightResult);
+        bool[] trianglesArr = new bool[_root.NumTriangles];
+        closestNode._triangles.CopyTo(trianglesArr, 0);
+        return Array.IndexOf(trianglesArr, true);
     }
 }

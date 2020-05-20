@@ -3,20 +3,23 @@
 
 public static class Utils
 {
-    public static bool RayTriangleIntersect(Ray ray, Vector3 vertex0, Vector3 vertex1, Vector3 vertex2)
+    public static bool RayTriangleIntersect(Ray ray, Vector3 vertex0, Vector3 vertex1, Vector3 vertex2, out float distance)
     {
-        Vector3 triangleNormal = Vector3.Cross((vertex1 - vertex0), (vertex2 - vertex0)).normalized;
+        Vector3 triangleNormal = -Vector3.Cross((vertex1 - vertex0), (vertex2 - vertex0)) / 2;
 
         float q = Vector3.Dot(triangleNormal, vertex0);
         float numerator = q - Vector3.Dot(triangleNormal, ray.origin);
         float denominator = Vector3.Dot(triangleNormal, ray.direction);
 
         // Check if ray.direction is parallel to plane
-        if (Mathf.Approximately(denominator, 0)) {
+        if (Mathf.Approximately(denominator, 0))
+        {
+            distance = Mathf.Infinity;
             return false;
         }
         
-        Vector3 intersectionPoint = ray.origin + (numerator / denominator) * ray.direction;
+        distance = numerator / denominator;
+        Vector3 intersectionPoint = ray.origin + distance * ray.direction;
         
         // Check that ray lands inside all 3 triangle edges
         bool inSide0 = Vector3.Dot(Vector3.Cross((vertex1 - vertex0), intersectionPoint - vertex0), triangleNormal) >= 0;
