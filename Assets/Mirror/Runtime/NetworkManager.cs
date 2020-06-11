@@ -1320,9 +1320,6 @@ namespace Mirror
             GameObject player = startPos != null
                 ? Instantiate(playerPrefab, startPos.position, startPos.rotation)
                 : Instantiate(playerPrefab);
-            
-            // TODO: allows for lobby/aerial camera to be disabled when FPS camera takes over
-            if (Camera.main != null) Camera.main.gameObject.SetActive(false);
 
             NetworkServer.AddPlayerForConnection(conn, player);
         }
