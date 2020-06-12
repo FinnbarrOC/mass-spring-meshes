@@ -15,15 +15,15 @@ public class ProjectileShooter : NetworkBehaviour
         // shoot
         if (Input.GetKeyDown(shootKey))
         {
-            CmdFire();
+            CmdFire(projectileMount.position, projectileMount.rotation);
         }
     }
 
     // this is called on the server
     [Command]
-    void CmdFire()
+    void CmdFire(Vector3 origin, Quaternion direction)
     {
-        GameObject projectile = Instantiate(projectilePrefab, projectileMount.position, projectileMount.rotation);
+        GameObject projectile = Instantiate(projectilePrefab, origin, direction);
         NetworkServer.Spawn(projectile);
         RpcOnFire();
     }
