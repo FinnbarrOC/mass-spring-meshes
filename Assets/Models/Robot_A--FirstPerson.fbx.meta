@@ -1,5 +1,5 @@
 fileFormatVersion: 2
-guid: 296bcbfb2ce56db45ade787d2cc22d19
+guid: 72869ea79d0ccb044ba2db168c4364d0
 ModelImporter:
   serializedVersion: 19301
   internalIDToNameTable: []
@@ -7,28 +7,8 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
-      name: Robot_A_Body_Rubber_Mat
-    second: {fileID: 2100000, guid: add878c32a0ee79448921cf959f5b218, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Robot_A_Head_Mat
+      name: Robot_A_1P_Mat
     second: {fileID: 2100000, guid: f3debb13c33e70648b0980adec4b2f50, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Robot_A_Head_Rubber_Mat
-    second: {fileID: 2100000, guid: add878c32a0ee79448921cf959f5b218, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Robot_A_Robot_A_Body_Mat
-    second: {fileID: 2100000, guid: f3debb13c33e70648b0980adec4b2f50, type: 2}
-  - first:
-      type: UnityEngine:Material
-      assembly: UnityEngine.CoreModule
-      name: Robot_A_Robot_A_Eye_Mat
-    second: {fileID: 2100000, guid: add878c32a0ee79448921cf959f5b218, type: 2}
   materials:
     materialImportMode: 1
     materialName: 0
@@ -86,13 +66,13 @@ ModelImporter:
     secondaryUVPackMargin: 4
     useFileScale: 1
   tangentSpace:
-    normalSmoothAngle: 0
+    normalSmoothAngle: 60
     normalImportMode: 0
     tangentImportMode: 3
     normalCalculationMode: 4
     legacyComputeAllNormalsFromSmoothingGroupsWhenMeshHasBlendShapes: 0
     blendShapeNormalImportMode: 1
-    normalSmoothingSource: 3
+    normalSmoothingSource: 0
   referencedClips: []
   importAnimation: 1
   humanDescription:

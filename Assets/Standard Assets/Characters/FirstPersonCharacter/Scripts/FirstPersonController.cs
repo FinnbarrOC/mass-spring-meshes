@@ -12,7 +12,8 @@ namespace UnityStandardAssets.Characters.FirstPerson
     [RequireComponent(typeof (AudioSource))]
     public class FirstPersonController : NetworkBehaviour
     {
-        [SerializeField] private GameObject localPlayerGameObject;
+        [SerializeField] private GameObject localPlayerOnly;
+        [SerializeField] private GameObject peerPlayerOnly;
         
         [SerializeField] private bool m_IsWalking;
         [SerializeField] private float m_WalkSpeed;
@@ -50,7 +51,8 @@ namespace UnityStandardAssets.Characters.FirstPerson
         {
             base.OnStartLocalPlayer();
             
-            localPlayerGameObject.SetActive(true);
+            peerPlayerOnly.SetActive(false);
+            localPlayerOnly.SetActive(true);
             m_CharacterController = GetComponent<CharacterController>();
             m_Camera = Camera.main;
             m_OriginalCameraPosition = m_Camera.transform.localPosition;
