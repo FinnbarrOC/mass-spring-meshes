@@ -1,7 +1,8 @@
+using Mirror;
 using UnityEngine;
 
 
-    public class Bullet : MonoBehaviour
+    public class Bullet : NetworkBehaviour
     {
         public float destroyAfter = 5;
         public Rigidbody rigidBody;
