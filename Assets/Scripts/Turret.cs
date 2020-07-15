@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections;
-using Mirror;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityStandardAssets.CrossPlatformInput;
-using UnityStandardAssets.Vehicles.Aeroplane;
 
 public class Turret : MonoBehaviour
 {
-    private NetworkIdentity _netID;
-    private AeroplaneUserControl4Axis _controller;
     [SerializeField] private GameObject bulletPrefab;
     [SerializeField] private Transform bulletSpawnPoint;
     [SerializeField] [Min(0)] private float roundsPerMinute = 600;
@@ -23,8 +19,6 @@ public class Turret : MonoBehaviour
 
     private void Awake()
     {
-        _controller = gameObject.transform.root.GetComponent<AeroplaneUserControl4Axis>();
-        _netID = gameObject.transform.root.GetComponent<NetworkIdentity>();
         _firingAudioSource = gameObject.AddComponent<AudioSource>();
         _firingAudioSource.playOnAwake = false;
         _firingAudioSource.clip = fireBulletSound;
@@ -36,16 +30,8 @@ public class Turret : MonoBehaviour
         if (_firingAudioSource) _firingAudioSource.volume = bulletSoundVolume;
     }
 
-    
-    
     private void Update()
     {
-        if (!_netID.isLocalPlayer)
-        {
-            Debug.Log("not player!");
-            return;
-        }    
-        
         if (Input.GetMouseButtonDown(0))
         {
             StartCoroutine(FireBullets());
@@ -63,27 +49,16 @@ public class Turret : MonoBehaviour
         while (Input.GetMouseButton(0))
         {
             yield return new WaitForEndOfFrame();
-            //RpcPlayShootSound();
-            Debug.Log("fire 1");
-            Vector3 vel = this.GetComponentInParent<Rigidbody>().velocity;
-            
-            _controller.CmdSpawnObject(bulletSpawnPoint.position, bulletSpawnPoint.rotation, vel);
-            //CmdSpawnBullet(null); //newBullet);
+            _firingAudioSource.Play();
+            GameObject newBullet = Instantiate(bulletPrefab, bulletSpawnPoint.position, bulletSpawnPoint.rotation);
+            Rigidbody rb = newBullet.GetComponent<Rigidbody>();
+            rb.velocity += this.GetComponentInParent<Rigidbody>().velocity;
             yield return firingDelay;
         }
     }
 
-    // this is called on the tank that fired for all observers
-    /*[ClientRpc]
-    void RpcPlayShootSound()
-    {
-        _firingAudioSource.Play();
-    }
-*/
     private void FixedUpdate()
     {
-        if (!_netID.isLocalPlayer) return;
-        
         if (Input.GetKey(KeyCode.Space))
         {
             transform.Rotate(-turretAimSensitivity * CrossPlatformInputManager.GetAxis("Mouse Y"), 
